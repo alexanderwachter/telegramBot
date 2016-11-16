@@ -120,11 +120,13 @@ def on_inline_query(msg):
 
         rooms = search_rooms(query_string)
         articles = []
+        i=0
         for room in rooms:
             if room[0] is None or room[1] is None or room[2] is None:
                 continue
+            i += 1
             articles.append(InlineQueryResultArticle(
-                        id=room[0],
+                        id=str(i),
                         title=room[0],
                         input_message_content=InputTextMessageContent(
                             message_text=(room[0] + ' | ' + room[1] + '\n' +
