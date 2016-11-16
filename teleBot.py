@@ -9,7 +9,7 @@ from telepot.namedtuple import InlineQueryResultArticle
 from telepot.namedtuple import InputTextMessageContent
 import subprocess
 from bs4 import BeautifulSoup
-import urllib
+import urllib.parse, urllib.request
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)-8s' +
