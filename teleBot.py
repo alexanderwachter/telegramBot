@@ -7,6 +7,8 @@ import telepot
 import telepot.aio
 from telepot.namedtuple import InlineQueryResultArticle
 from telepot.namedtuple import InputTextMessageContent
+from telepot.aio.routing import by_chat_command
+from telepot.aio.helper import Router
 import subprocess
 from bs4 import BeautifulSoup
 import urllib.parse, urllib.request
@@ -38,48 +40,44 @@ def search_rooms(name):
                          url + cols[5].find('a')['href']))
     return rooms
 
-
-async def on_chat_message(msg):
+async def on_room_handler(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
-    info = content_type + ' ' + chat_type + ' ' + str(chat_id)
-    if(msg.get('chat').get('last_name')):
-        info += (' ' + msg['chat']['first_name'] +
-                 ' ' + msg['chat']['last_name'])
-
-    if content_type != 'text':
-        on_chat_message.log.info(info)
-        return
-
     args = msg['text'].split(' ', 1)
-    command = args[0].lower()
+    searchstr = ''
+    output = ''
+    if len(args) > 1:
+        searchstr = args[1]
+    rooms = search_rooms(searchstr)
+    on_room_handler.log.info("string: " + searchstr + " from: " + 
+                             msg['from'].get('first_name') + " " 
+                             + msg['from'].get('last_name') + " " + chat_type)
+    if len(rooms) == 0:
+        await bot.sendMessage(chat_id, 'Nothing found')
+    else:
+        for room in rooms:
+            output = (output + room[0] + ' | ' + room[1] + '\n' + room[2] + '\n\n')
+        await bot.sendMessage(chat_id, output)
+on_room_handler.log = logging.getLogger('room')
 
-    info += ': ' + msg['text']
-    on_chat_message.log.info(info)
-    if command == '/myip':
-        if msg['from']['id'] != 263054564:
-            await bot.sendMessage(chat_id, 'this command is not public')
-            return
-        ip = subprocess.check_output(['dig', '+short', 'myip.opendns.com',
-                                      '@resolver1.opendns.com'])
-        await bot.sendMessage(chat_id, ip.decode())
 
-    elif command == '/hofer_wählen?':
-        await bot.sendMessage(chat_id, "Nein!")
+async def on_myip_handler(msg):
+    content_type, chat_type, chat_id = telepot.glance(msg)
+    if msg['from']['id'] != 263054564:
+        on_myip_handler.log.info("/blocked")
+        await bot.sendMessage(chat_id, 'this command is not public')
+        return
+    ip = subprocess.check_output(['dig', '+short', 'myip.opendns.com', '@resolver1.opendns.com'])
+    on_myip_handler.log.info("answered")
+    await bot.sendMessage(chat_id, ip.decode())
+on_myip_handler.log = logging.getLogger('myip')
 
-    elif command == '/room':
-        searchstr = ''
-        output = ''
-        if len(args) > 1:
-            searchstr = args[1]
-        rooms = search_rooms(searchstr)
-        if len(rooms) == 0:
-            await bot.sendMessage(chat_id, 'Nothing found')
-        else:
-            for room in rooms:
-                output = (output + room[0] + ' | ' +
-                          room[1] + '\n' + room[2] + '\n\n')
-            await bot.sendMessage(chat_id, output)
-on_chat_message.log = logging.getLogger('chat')
+
+async def default_chat_handler(msg):
+    if not msg['text'].startswith('/'):
+        return
+    content_type, chat_type, chat_id = telepot.glance(msg)
+    await bot.sendMessage(chat_id, "unknown command")
+default_chat_handler.log = logging.getLogger('default chat')
 
 
 def on_edited_chat_message(msg):
@@ -159,12 +157,18 @@ if(len(TOKEN) != 45):
 bot = telepot.aio.Bot(TOKEN)
 answerer = telepot.aio.helper.Answerer(bot)
 
+chat_router = Router(by_chat_command(), 
+                                    {'myip': on_myip_handler,
+                                     'room': on_room_handler,
+                                     None : default_chat_handler
+                                     })
+
 loop = asyncio.get_event_loop()
-loop.create_task(bot.message_loop({'chat': on_chat_message,
+loop.create_task(bot.message_loop({'chat': chat_router.route,
                                    'edited_chat': on_edited_chat_message,
                                    'callback_query': on_callback_query,
                                    'inline_query': on_inline_query,
-                                   'chosen_inline_result':
-                                   on_chosen_inline_result}))
+                                   'chosen_inline_result': on_chosen_inline_result}))
+                                   
 logger.info('Listening ...')
 loop.run_forever()
