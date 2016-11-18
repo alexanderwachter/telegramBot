@@ -55,7 +55,7 @@ async def on_room_handler(msg):
         await bot.sendMessage(chat_id, 'Nothing found')
     else:
         for room in rooms:
-            output = (output + room[0] + ' | ' + room[1] + '\n' + room[2] + '\n\n')
+            output = (output + str(room[0]) + ' | ' + str(room[1]) + '\n' + str(room[2]) + '\n\n')
         await bot.sendMessage(chat_id, output)
 on_room_handler.log = logging.getLogger('room')
 
@@ -83,8 +83,7 @@ default_chat_handler.log = logging.getLogger('default chat')
 def on_edited_chat_message(msg):
     content_type, chat_type, chat_id = telepot.glance(msg,
                                                       flavor='edited_chat')
-    info = ('Edited chat: ' + content_type + ' ' + chat_type + ' ' +
-            str(chat_id))
+    info = ('Edited chat: ' + content_type + ' ' + chat_type + ' ' + str(chat_id))
     on_edited_chat_message.log.info(info)
 on_edited_chat_message.log = logging.getLogger('chat edit')
 
@@ -127,8 +126,7 @@ def on_inline_query(msg):
                         id=str(i),
                         title=room[0],
                         input_message_content=InputTextMessageContent(
-                            message_text=(room[0] + ' | ' + room[1] + '\n' +
-                                          room[2]))))
+                            message_text=(room[0] + ' | ' + room[1] + '\n' + room[2]))))
         return articles
     answerer.answer(msg, compute)
 on_inline_query.log = logging.getLogger('inline query')
