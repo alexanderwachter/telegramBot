@@ -76,7 +76,8 @@ async def default_chat_handler(msg):
     if not msg['text'].startswith('/'):
         return
     content_type, chat_type, chat_id = telepot.glance(msg)
-    await bot.sendMessage(chat_id, "unknown command")
+    if chat_type == 'private':
+        await bot.sendMessage(chat_id, "unknown command")
 default_chat_handler.log = logging.getLogger('default chat')
 
 
