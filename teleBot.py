@@ -71,6 +71,12 @@ async def on_myip_handler(msg):
     await bot.sendMessage(chat_id, ip.decode())
 on_myip_handler.log = logging.getLogger('myip')
 
+async def on_slap_handler(msg):
+    content_type, chat_type, chat_id = telepot.glance(msg)
+    msg = msg['from']['first_name'] + " slaps " + msg['text'] + " around a bit with a large trout" 
+    await bot.sendMessage(chat_id, msg);
+on_myip_handler.log = logging.getLogger('slap')
+
 
 async def default_chat_handler(msg):
     if not msg['text'].startswith('/'):
@@ -159,6 +165,7 @@ answerer = telepot.aio.helper.Answerer(bot)
 chat_router = Router(by_chat_command(), 
                                     {'myip': on_myip_handler,
                                      'room': on_room_handler,
+                                     'slap': on_slap_handler,
                                      None : default_chat_handler
                                      })
 
