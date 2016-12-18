@@ -72,8 +72,9 @@ async def on_myip_handler(msg):
 on_myip_handler.log = logging.getLogger('myip')
 
 async def on_slap_handler(msg):
+    args = msg['text'].split(' ', 1)
     content_type, chat_type, chat_id = telepot.glance(msg)
-    msg = msg['from']['first_name'] + " slaps " + msg['text'] + " around a bit with a large trout" 
+    msg = msg['from']['first_name'] + " slaps " + args[1] + " around a bit with a large trout" 
     await bot.sendMessage(chat_id, msg);
 on_myip_handler.log = logging.getLogger('slap')
 
@@ -88,8 +89,7 @@ default_chat_handler.log = logging.getLogger('default chat')
 
 
 def on_edited_chat_message(msg):
-    content_type, chat_type, chat_id = telepot.glance(msg,
-                                                      flavor='edited_chat')
+    content_type, chat_type, chat_id = telepot.glance(msg, flavor='edited_chat')
     info = ('Edited chat: ' + content_type + ' ' + chat_type + ' ' + str(chat_id))
     on_edited_chat_message.log.info(info)
 on_edited_chat_message.log = logging.getLogger('chat edit')
