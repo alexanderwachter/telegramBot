@@ -74,13 +74,12 @@ on_myip_handler.log = logging.getLogger('myip')
 async def on_slap_handler(msg):
     args = msg['text'].split(' ', 1)
     content_type, chat_type, chat_id = telepot.glance(msg)
-    msg = msg['from']['first_name'] + " slaps " + args[1] + " around a bit with a large trout"
-    await bot.sendMessage(chat_id, msg);
+    caption = msg['from']['first_name'] + " slaps " + args[1] + " around a bit with a large trout"
     try:
-        await bot.sendPhoto(chat_id, on_slap_handler.file_id, caption='Whack!')
+        await bot.sendPhoto(chat_id, on_slap_handler.file_id, caption=caption)
     except telepot.exception.TelegramError:
-        on_myip_handler.log.info("upload trout")
-        ret = await bot.sendPhoto(chat_id, open('trout.png', 'rb'), caption='Whack!')
+        on_slap_handler.log.info("upload trout")
+        ret = await bot.sendPhoto(chat_id, open('trout.png', 'rb'), caption=caption)
         on_slap_handler.file_id = ret['photo'][0]['file_id']
 
 on_slap_handler.log = logging.getLogger('slap')
